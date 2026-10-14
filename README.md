@@ -4,7 +4,7 @@
 
 **Audience:** An IT service desk manager deciding where to focus process improvements.
 **Tools:** PostgreSQL (CTEs, window functions, percentiles), Power BI
-**Dashboard:** [add Power BI link or screenshot]
+**Dashboard:** two pages built in Power BI Desktop (file: `incident_dashboard.pbix`)
 
 ## Business question
 
@@ -36,11 +36,11 @@ All SQL is in [`incident_analysis.sql`](incident_analysis.sql).
 
 **1. Most incidents resolve quickly, but a long tail is slow.** Of 23,362 resolved incidents, 51.7% were resolved within 24 hours (32.1% in under an hour), 22.9% took more than 7 days, and 4.9% took more than 30 days. Averages are far above medians, so I report medians and percentiles.
 
-**2. Reassignments go with much slower resolution.** 48.6% of resolved incidents were reassigned at least once, and reassigned incidents account for 72.6% of total elapsed resolution time. Median resolution time across all priorities is 0.7 hours with no reassignment, 50.6 hours (1-2 reassignments), 167.8 hours (3-5), and 336.6 hours (6+), or roughly 40 minutes, 2 days, 1 week and 2 weeks. Moderate-priority incidents alone (94% of volume) show the same pattern at 0.6, 51.7, 168.1 and 336.8 hours, so the result is not just a priority mix effect.
+**2. Reassignments go with much slower resolution.** 48.6% of resolved incidents were reassigned at least once, and reassigned incidents account for 72.6% of total elapsed resolution time. Median resolution time across all priorities is 0.7 hours with no reassignment, 50.6 hours (1-2 reassignments), 167.8 hours (3-5), and 336.6 hours (6+), or roughly 40 minutes, 2 days, 1 week and 2 weeks. Moderate-priority incidents alone (94% of volume) show the same pattern at 0.6, 51.7, 168.1 and 336.8 hours, so the result is not just a priority mix effect. Of the 538 incidents reassigned six or more times, about 80% took longer than a week (62.6% took 7-30 days and 17.5% took over 30 days).
 
 **3. SLA attainment falls as reassignments rise.** Across resolved incidents, SLA was met 77.1%, 52.5%, 28.8%, and 8.6% of the time for 0, 1-2, 3-5, and 6+ reassignments. Overall, 63.4% of all incidents met their SLA. Among groups with at least 100 incidents, Group 12 was lowest at 13.0% (123 incidents), followed by Groups 37 and 10 at about 25%. Groups differ in workload mix, so this shows where to investigate, not which group performs worst.
 
-**4. Much of the time is spent waiting.** Excluding the post-resolution wait before auto-close, the largest shares of time are Active (18.0% of all time), Awaiting User Info (15.7%), and New (13.8%, before work starts). Awaiting Vendor is slow per event (about 16 days) but rare (3.5% of all time).
+**4. Much of the time is spent waiting.** Excluding the post-resolution wait before auto-close, the largest shares of time are Active (18.0% of all time), Awaiting User Info (15.7%), and New (13.8%, before work starts). Awaiting Vendor is slow per event (about 16 days) but rare (3.4% of all time). Closed (0.3%) and Awaiting Evidence (0.2%) are small.
 
 **5. Higher-priority incidents were slower at the median.** Critical incidents had a median of 80.2 hours versus 5.0 for Low. Among incidents with no reassignments, Critical still took a median of 95.2 hours versus 0.6 for Moderate, so handoffs alone do not explain the gap. Critical (270) and High (408) are small groups, so treat these figures as indicative. [Check how many Critical incidents had zero reassignments and add the count here.]
 
@@ -59,6 +59,15 @@ The reassignment pattern is consistent: it grows at every level and holds within
 - **Unresolved incidents.** 1,556 incidents (6.2%) were never resolved and are excluded from timing metrics; 1,546 of them had no reassignments.
 - **No reliable monthly trend.** About 99% of incidents were opened between February and May 2016, which looks like an extraction effect.
 - **Elapsed time is not effort.** Hours are calendar time between events, not staff time.
+- **Small samples.** There are too few Critical and High incidents with 3+ reassignments to draw conclusions.
+- **Anonymized groups.** Assignment groups differ in workload mix, so the SLA ranking shows where to investigate, not who performs worst.
+- **Data quality.** One state value, `-100` (5 events), is invalid and excluded.
+
+## Reproduce
+
+1. Download the CSV from the UCI page above.
+2. Create a PostgreSQL database and run the steps in `incident_analysis.sql` in order: create the raw table, import the CSV (header on, comma delimiter), then run the clean-table and view steps and the analysis queries.
+3. Run `powerbi_views.sql` to create the two views the dashboard reads, then connect Power BI to them (Import mode).
 - **Small samples.** There are too few Critical and High incidents with 3+ reassignments to draw conclusions.
 - **Anonymized groups.** Assignment groups differ in workload mix, so the SLA ranking shows where to investigate, not who performs worst.
 - **Data quality.** One state value, `-100` (5 events), is invalid and excluded.
