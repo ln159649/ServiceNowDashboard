@@ -1,0 +1,138 @@
+POWER BI MEASURES (DAX) - ServiceNow incident dashboard
+=========================================================
+How to add each one: select the table named in the header, then Table tools > New measure,
+paste the formula, press Enter. Set the format afterward (Measure tools > Format):
+  - names ending in % : Percentage, 1 decimal
+  - names ending in Hrs : Decimal number, 1 decimal
+  - counts : Whole number, thousands separator
+
+---------------------------------------------------------
+TABLE: incident_facts
+---------------------------------------------------------
+
+Total Incidents = COUNTROWS(incident_facts)
+
+Resolved Incidents =
+CALCULATE(
+    COUNTROWS(incident_facts),
+    incident_facts[is_resolved] = TRUE()
+)
+
+Never Resolved = [Total Incidents] - [Resolved Incidents]
+
+Median Resolution Hrs = MEDIAN(incident_facts[resolution_hours])
+
+P90 Resolution Hrs = PERCENTILE.INC(incident_facts[resolution_hours], 0.9)
+
+Resolved Within 24h % =
+DIVIDE(
+    CALCULATE(
+        COUNTROWS(incident_facts),
+        incident_facts[is_resolved] = TRUE(),
+        incident_facts[resolution_hours] < 24
+    ),
+    [Resolved Incidents]
+)
+
+Over 7 Days % =
+DIVIDE(
+    CALCULATE(
+        COUNTROWS(incident_facts),
+        incident_facts[is_resolved] = TRUE(),
+        incident_facts[resolution_hours] >= 168
+    ),
+    [Resolved Incidents]
+)
+
+SLA Met % (all) =
+DIVIDE(
+    CALCULATE(COUNTROWS(incident_facts), incident_facts[made_sla] = TRUE()),
+    [Total Incidents]
+)
+
+SLA Met % (resolved) =
+DIVIDE(
+    CALCULATE(
+        COUNTROWS(incident_facts),
+        incident_facts[is_resolved] = TRUE(),
+        incident_facts[made_sla] = TRUE()
+    ),
+    [Resolved Incidents]
+)
+
+Reopened % (resolved) =
+DIVIDE(
+    CALCULATE(
+        COUNTROWS(incident_facts),
+        incident_facts[is_resolved] = TRUE(),
+        incident_facts[reopen_count] > 0
+    ),
+    [Resolved Incidents]
+)
+
+Reassigned % (resolved) =
+DIVIDE(
+    CALCULATE(
+        COUNTROWS(incident_facts),
+        incident_facts[is_resolved] = TRUE(),
+        incident_facts[reassignment_count] > 0
+    ),
+    [Resolved Incidents]
+)
+
+Reassigned Share of Elapsed Hours =
+DIVIDE(
+    CALCULATE(
+        SUM(incident_facts[resolution_hours]),
+        incident_facts[reassignment_count] > 0
+    ),
+    SUM(incident_facts[resolution_hours])
+)
+
+Share of Resolved (by bucket) =
+DIVIDE(
+    [Resolved Incidents],
+    CALCULATE([Resolved Incidents], ALL(incident_facts[resolution_bucket]))
+)
+
+---------------------------------------------------------
+TABLE: state_durations
+---------------------------------------------------------
+
+Hours in State = SUM(state_durations[hours_in_state])
+
+Avg Hours per Stretch = AVERAGE(state_durations[hours_in_state])
+
+Share of All Time =
+DIVIDE(
+    [Hours in State],
+    CALCULATE([Hours in State], ALL(state_durations[incident_state]))
+)
+
+---------------------------------------------------------
+CHECKSUM: what each measure should show (from your own SQL results)
+---------------------------------------------------------
+Put each in a Card visual with no filters. Tiny differences in the last digit are fine for
+the three numbers marked (*), which came from a run before the table was rebuilt.
+
+  Total Incidents                      24,918
+  Resolved Incidents                   23,362
+  Never Resolved                        1,556
+  Resolved Within 24h %                 51.7%  (*)
+  Over 7 Days %                         22.9%  (*)
+  SLA Met % (all)                       63.4%
+  Reassigned % (resolved)               48.6%
+  Reassigned Share of Elapsed Hours     72.6%
+
+Split by incident_facts[reassignment_bucket] (Table visual):
+  bucket   Resolved Incidents   SLA Met % (resolved)
+  0              12,003               77.1%
+  1-2             8,511               52.5%
+  3-5             2,310               28.8%
+  6+                538                8.6%
+
+Split by incident_facts[priority] (Table visual), Median Resolution Hrs (*):
+  1 - Critical 80.2   2 - High 38.2   3 - Moderate 21.6   4 - Low 5.0
+
+Split by state_durations[incident_state], Share of All Time (*):
+  Resolved 47.4%   Active 18.0%   Awaiting User Info 15.7%   New 13.8%   Awaiting Vendor 3.5%
