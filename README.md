@@ -42,7 +42,7 @@ All SQL is in [`incident_analysis.sql`](incident_analysis.sql).
 
 **4. Much of the time is spent waiting.** Excluding the post-resolution wait before auto-close, the largest shares of time are Active (18.0% of all time), Awaiting User Info (15.7%), and New (13.8%, before work starts). Awaiting Vendor is slow per event (about 16 days) but rare (3.4% of all time). Closed (0.3%) and Awaiting Evidence (0.2%) are small.
 
-**5. Higher-priority incidents were slower at the median.** Critical incidents had a median of 80.2 hours versus 5.0 for Low. Among incidents with no reassignments, Critical still took a median of 95.2 hours versus 0.6 for Moderate, so handoffs alone do not explain the gap. Critical (270) and High (408) are small groups, so treat these figures as indicative. [Check how many Critical incidents had zero reassignments and add the count here.]
+**5. Higher-priority incidents were slower at the median.** Critical incidents had a median of 80.2 hours versus 5.0 for Low. Among incidents with no reassignments, Critical still took a median of 95.2 hours versus 0.6 for Moderate, so handoffs alone do not explain the gap. Critical (270) and High (408) are small groups, so treat these figures as indicative.
 
 ## Recommendation
 
@@ -59,15 +59,6 @@ The reassignment pattern is consistent: it grows at every level and holds within
 - **Unresolved incidents.** 1,556 incidents (6.2%) were never resolved and are excluded from timing metrics; 1,546 of them had no reassignments.
 - **No reliable monthly trend.** About 99% of incidents were opened between February and May 2016, which looks like an extraction effect.
 - **Elapsed time is not effort.** Hours are calendar time between events, not staff time.
-- **Small samples.** There are too few Critical and High incidents with 3+ reassignments to draw conclusions.
-- **Anonymized groups.** Assignment groups differ in workload mix, so the SLA ranking shows where to investigate, not who performs worst.
-- **Data quality.** One state value, `-100` (5 events), is invalid and excluded.
-
-## Reproduce
-
-1. Download the CSV from the UCI page above.
-2. Create a PostgreSQL database and run the steps in `incident_analysis.sql` in order: create the raw table, import the CSV (header on, comma delimiter), then run the clean-table and view steps and the analysis queries.
-3. Run `powerbi_views.sql` to create the two views the dashboard reads, then connect Power BI to them (Import mode).
 - **Small samples.** There are too few Critical and High incidents with 3+ reassignments to draw conclusions.
 - **Anonymized groups.** Assignment groups differ in workload mix, so the SLA ranking shows where to investigate, not who performs worst.
 - **Data quality.** One state value, `-100` (5 events), is invalid and excluded.
