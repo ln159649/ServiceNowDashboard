@@ -4,7 +4,7 @@
 
 **Audience:** An IT service desk manager deciding where to focus process improvements.
 **Tools:** PostgreSQL (CTEs, window functions, percentiles), Power BI
-**Dashboard:** two pages built in Power BI Desktop (file: `incident_dashboard.pbix`)
+**Dashboard:** two pages built in Power BI Desktop (file: `ServiceNow.pbix`)
 
 ## Business question
 
